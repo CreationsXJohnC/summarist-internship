@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+
 const StatisticsSection = () => {
   const leftStats = [
     {
@@ -49,6 +51,15 @@ const StatisticsSection = () => {
     "Maximize your abilities"
   ];
 
+  // Synchronized highlight index (cycles every 2.5 seconds)
+  const [activeIndex, setActiveIndex] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % leftHeadings.length);
+    }, 2500);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <section className="py-20 bg-gray-50">
       <div className="container mx-auto px-6">
@@ -57,7 +68,12 @@ const StatisticsSection = () => {
           <div className="lg:w-1/2 mb-10 lg:mb-0 lg:pr-10">
             <div className="space-y-4">
               {leftHeadings.map((heading, index) => (
-                <h3 key={index} className="text-2xl font-semibold text-[#032b41]">
+                <h3
+                  key={index}
+                  className={`text-2xl font-semibold transition-colors duration-500 ${
+                    activeIndex === index ? 'text-[#2bd97c]' : 'text-[#032b41]'
+                  }`}
+                >
                   {heading}
                 </h3>
               ))}
@@ -82,7 +98,12 @@ const StatisticsSection = () => {
           <div className="lg:w-1/2 mb-10 lg:mb-0 lg:pl-10">
             <div className="space-y-4">
               {rightHeadings.map((heading, index) => (
-                <h3 key={index} className="text-2xl font-semibold text-[#032b41]">
+                <h3
+                  key={index}
+                  className={`text-2xl font-semibold transition-colors duration-500 ${
+                    activeIndex === index ? 'text-[#2bd97c]' : 'text-[#032b41]'
+                  }`}
+                >
                   {heading}
                 </h3>
               ))}

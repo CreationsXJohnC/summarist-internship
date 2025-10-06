@@ -63,14 +63,14 @@ export default function Sidebar() {
       `}>
         {/* Close button for mobile */}
         <div className="lg:hidden flex justify-end p-4">
-          <button onClick={closeSidebar}>
+          <button onClick={closeSidebar} className="cursor-pointer">
             <AiOutlineClose className="w-6 h-6 text-gray-600" />
           </button>
         </div>
 
         {/* Logo area */}
         <div className="p-6 border-b border-gray-200">
-          <Link href="/" onClick={closeSidebar}>
+          <Link href="/" onClick={closeSidebar} className="cursor-pointer">
             <img src="/assets/logo.png" alt="Summarist" className="h-8" />
           </Link>
         </div>
@@ -88,7 +88,7 @@ export default function Sidebar() {
                     href={item.href}
                     onClick={closeSidebar}
                     className={`
-                      flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors
+                      flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors cursor-pointer
                       ${isActive 
                         ? 'bg-[#2bd97c] text-[#032b41] font-medium' 
                         : 'text-gray-700 hover:bg-gray-100'
@@ -116,7 +116,7 @@ export default function Sidebar() {
                       href={item.href}
                       onClick={closeSidebar}
                       className={`
-                        flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors
+                        flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors cursor-pointer
                         ${isActive 
                           ? 'bg-[#2bd97c] text-[#032b41] font-medium' 
                           : 'text-gray-700 hover:bg-gray-100'
@@ -134,7 +134,7 @@ export default function Sidebar() {
               <li>
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
+                  className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
                 >
                   <AiOutlineLogout className="w-5 h-5" />
                   <span>Logout</span>

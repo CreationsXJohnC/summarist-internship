@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import Image from 'next/image';
 
 const Footer = () => {
@@ -42,9 +41,9 @@ const Footer = () => {
             <ul className="space-y-3">
               {footerLinks.actions.map((link, index) => (
                 <li key={index}>
-                  <Link href={link.href} className="text-gray-300 hover:text-[#2bd97c] transition-colors">
+                  <span className="text-gray-300 cursor-not-allowed select-none opacity-70" aria-disabled="true" tabIndex={-1}>
                     {link.name}
-                  </Link>
+                  </span>
                 </li>
               ))}
             </ul>
@@ -56,9 +55,9 @@ const Footer = () => {
             <ul className="space-y-3">
               {footerLinks.usefulLinks.map((link, index) => (
                 <li key={index}>
-                  <Link href={link.href} className="text-gray-300 hover:text-[#2bd97c] transition-colors">
+                  <span className="text-gray-300 cursor-not-allowed select-none opacity-70" aria-disabled="true" tabIndex={-1}>
                     {link.name}
-                  </Link>
+                  </span>
                 </li>
               ))}
             </ul>
@@ -70,9 +69,9 @@ const Footer = () => {
             <ul className="space-y-3">
               {footerLinks.company.map((link, index) => (
                 <li key={index}>
-                  <Link href={link.href} className="text-gray-300 hover:text-[#2bd97c] transition-colors">
+                  <span className="text-gray-300 cursor-not-allowed select-none opacity-70" aria-disabled="true" tabIndex={-1}>
                     {link.name}
-                  </Link>
+                  </span>
                 </li>
               ))}
             </ul>
@@ -84,9 +83,9 @@ const Footer = () => {
             <ul className="space-y-3">
               {footerLinks.other.map((link, index) => (
                 <li key={index}>
-                  <Link href={link.href} className="text-gray-300 hover:text-[#2bd97c] transition-colors">
+                  <span className="text-gray-300 cursor-not-allowed select-none opacity-70" aria-disabled="true" tabIndex={-1}>
                     {link.name}
-                  </Link>
+                  </span>
                 </li>
               ))}
             </ul>

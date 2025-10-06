@@ -12,15 +12,15 @@ const HeroSection = () => {
   };
 
   return (
-    <section className="bg-[#032b41] text-white py-20">
+    <section className="bg-white text-[#032b41] py-20">
       <div className="container mx-auto px-6">
         <div className="flex flex-col lg:flex-row items-center justify-between">
-          <div className="lg:w-1/2 mb-10 lg:mb-0">
+          <div className="lg:w-1/2 mb-10 lg:mb-0 lg:pl-16">
             <h1 className="text-4xl lg:text-5xl font-bold mb-6 leading-tight">
               Gain more knowledge <br />
               <span className="text-[#2bd97c]">in less time</span>
             </h1>
-            <p className="text-lg mb-8 text-gray-300">
+            <p className="text-lg mb-8 text-[#032b41]">
               Great summaries for busy people,
               <br />
               individuals who barely have time to read,
