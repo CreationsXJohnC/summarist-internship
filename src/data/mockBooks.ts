@@ -8,8 +8,8 @@ export interface Book {
   totalRating: number;
   averageRating: number;
   keyIdeas: number;
-  type: 'book' | 'article';
-  status: 'completed' | 'progress' | 'barely-started';
+  type: string;
+  status: string;
   subscriptionRequired: boolean;
   summary: string;
   tags: string[];

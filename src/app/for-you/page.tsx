@@ -3,27 +3,52 @@
 import { useSelector } from 'react-redux';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import BookCard from '@/components/books/BookCard';
-import { getRecommendedBooks, getSuggestedBooks, Book } from '@/data/mockBooks';
-import { AiOutlineSearch } from 'react-icons/ai';
+import { BsFillPlayFill } from 'react-icons/bs';
+import type { Book } from '@/data/mockBooks';
+
+import type { RootState } from '@/store/store';
 
 const ForYouPage = () => {
   const router = useRouter();
-  const { isAuthenticated } = useSelector((state: any) => state.auth);
+
+  const { isAuthenticated, hasHydrated } = useSelector((state: RootState) => state.auth);
+  const [selectedBook, setSelectedBook] = useState<Book | null>(null);
   const [recommendedBooks, setRecommendedBooks] = useState<Book[]>([]);
   const [suggestedBooks, setSuggestedBooks] = useState<Book[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
+  const searchQuery = useSelector((state: RootState) => state.books.searchQuery);
 
   useEffect(() => {
+    if (!hasHydrated) return;
     if (!isAuthenticated) {
       router.push('/');
       return;
     }
 
-    // Load book data
-    setRecommendedBooks(getRecommendedBooks());
-    setSuggestedBooks(getSuggestedBooks());
-  }, [isAuthenticated, router]);
+    const fetchBooks = async () => {
+      try {
+        const [selectedRes, recommendedRes, suggestedRes] = await Promise.all([
+          fetch('https://us-central1-summaristt.cloudfunctions.net/getBooks?status=selected'),
+          fetch('https://us-central1-summaristt.cloudfunctions.net/getBooks?status=recommended'),
+          fetch('https://us-central1-summaristt.cloudfunctions.net/getBooks?status=suggested'),
+        ]);
+
+        const selectedData = await selectedRes.json();
+        const recommendedData = await recommendedRes.json();
+        const suggestedData = await suggestedRes.json();
+
+        const selected = Array.isArray(selectedData) ? selectedData[0] : selectedData;
+        setSelectedBook(selected ?? null);
+        setRecommendedBooks(Array.isArray(recommendedData) ? recommendedData : []);
+        setSuggestedBooks(Array.isArray(suggestedData) ? suggestedData : []);
+      } catch (error) {
+        console.error('Failed to fetch books:', error);
+      }
+    };
+
+    fetchBooks();
+  }, [hasHydrated, isAuthenticated, router]);
 
   const filteredRecommended = recommendedBooks.filter(book =>
     book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -35,6 +60,9 @@ const ForYouPage = () => {
     book.author.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  if (!hasHydrated) {
+    return null;
+  }
   if (!isAuthenticated) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -51,51 +79,42 @@ const ForYouPage = () => {
       <div className="container mx-auto px-6">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-[#032b41] mb-4">For You</h1>
-          <p className="text-gray-600 mb-6">
-            Discover your next favorite book with personalized recommendations
-          </p>
-          
-          {/* Search Bar */}
-          <div className="relative max-w-md">
-            <AiOutlineSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search books..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2bd97c] focus:border-transparent"
-            />
-          </div>
+          <h1 className="text-3xl font-bold text-[#032b41] mb-4">Selected just for you</h1>
+          {/* Search Bar moved to Navbar */}
         </div>
 
-        {/* Selected Book of the Day */}
+        {/* Selected just for you - Screenshot style */}
         <section className="mb-12">
-          <div className="bg-gradient-to-r from-[#032b41] to-[#2bd97c] rounded-lg p-8 text-white">
-            <div className="flex flex-col lg:flex-row items-center gap-8">
-              <div className="lg:w-1/3">
-                <div className="w-48 h-72 mx-auto relative overflow-hidden rounded-lg shadow-lg">
-                  <img
-                    src={recommendedBooks[0]?.imageLink}
-                    alt={recommendedBooks[0]?.title}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
+          <div className="bg-[#f2f4ef] text-[#032b41] rounded-xl p-6">
+            <div className="flex items-center">
+              {/* Left blurb */}
+              <div className="flex-1 pr-8">
+                <h2 className="font-semibold mb-2">How Constant Innovation Creates Radically Successful Businesses</h2>
+                <p className="text-sm text-[#6b7c93]">Selected just for you</p>
               </div>
-              <div className="lg:w-2/3 text-center lg:text-left">
-                <h2 className="text-2xl font-bold mb-2">Selected just for you</h2>
-                <h3 className="text-xl font-semibold mb-4">{recommendedBooks[0]?.title}</h3>
-                <p className="text-lg mb-4">by {recommendedBooks[0]?.author}</p>
-                <p className="text-gray-200 mb-6 leading-relaxed">
-                  {recommendedBooks[0]?.summary}
-                </p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                  <button className="bg-white text-[#032b41] px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
-                    Read
+
+              {/* Vertical divider */}
+              <div className="w-px h-24 bg-gray-300 mx-4 hidden md:block" />
+
+              {/* Right side: cover + meta */}
+              <div className="flex-1 flex items-center gap-6">
+                <div className="w-20 h-28 relative overflow-hidden rounded shadow">
+                  <Image src={selectedBook?.imageLink || '/assets/placeholder.png'} alt={selectedBook?.title || 'Selected Book'} fill className="object-cover" sizes="(max-width: 768px) 100vw, 33vw" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-bold">{selectedBook?.title}</h3>
+                  <p className="text-sm text-[#6b7c93]">{selectedBook?.author}</p>
+                </div>
+                {/* Play + duration label */}
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => selectedBook && router.push(`/book/${selectedBook.id}/listen/transcript`)}
+                    className="w-10 h-10 rounded-full bg-black flex items-center justify-center shadow hover:shadow-md transition"
+                    aria-label="Play"
+                  >
+                    <BsFillPlayFill className="text-white text-xl" />
                   </button>
-                  <button className="border border-white text-white px-6 py-3 rounded-lg font-semibold hover:bg-white hover:text-[#032b41] transition-colors">
-                    Listen
-                  </button>
+                  <span className="text-sm text-[#032b41]">3 mins 23 secs</span>
                 </div>
               </div>
             </div>
@@ -106,7 +125,7 @@ const ForYouPage = () => {
         <section className="mb-12">
           <h2 className="text-2xl font-bold text-[#032b41] mb-6">Recommended for you</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-            {filteredRecommended.slice(1).map((book) => (
+            {filteredRecommended.slice(0, 5).map((book) => (
               <BookCard key={book.id} book={book} size="medium" />
             ))}
           </div>
@@ -116,28 +135,13 @@ const ForYouPage = () => {
         <section className="mb-12">
           <h2 className="text-2xl font-bold text-[#032b41] mb-6">Suggested Books</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-            {filteredSuggested.map((book) => (
+            {filteredSuggested.slice(0, 5).map((book) => (
               <BookCard key={book.id} book={book} size="medium" />
             ))}
           </div>
         </section>
 
-        {/* Browse by Category */}
-        <section>
-          <h2 className="text-2xl font-bold text-[#032b41] mb-6">Browse by Category</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {['Self-Help', 'Business', 'Psychology', 'Productivity', 'Leadership', 'Entrepreneurship', 'Mindfulness', 'Success'].map((category) => (
-              <div
-                key={category}
-                className="bg-white rounded-lg p-6 text-center hover:shadow-md transition-shadow cursor-pointer border border-gray-200 hover:border-[#2bd97c]"
-              >
-                <h3 className="font-semibold text-[#032b41] hover:text-[#2bd97c] transition-colors">
-                  {category}
-                </h3>
-              </div>
-            ))}
-          </div>
-        </section>
+
       </div>
     </div>
   );

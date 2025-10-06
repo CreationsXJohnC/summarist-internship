@@ -9,8 +9,10 @@ interface MainLayoutProps {
   children: React.ReactNode;
 }
 
+import type { RootState } from '@/store/store';
+
 export default function MainLayout({ children }: MainLayoutProps) {
-  const isAuthenticated = useAppSelector((state: any) => state.auth.isAuthenticated);
+  const isAuthenticated = useAppSelector((state: RootState) => state.auth.isAuthenticated);
   const pathname = usePathname();
   const isHomePage = pathname === '/';
 

@@ -37,8 +37,9 @@ const BookCard = ({ book, size = 'medium' }: BookCardProps) => {
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
             {book.subscriptionRequired && (
-              <div className="absolute top-2 right-2 bg-yellow-400 rounded-full p-1">
+              <div className="absolute top-2 right-2 bg-[#2bd97c] text-white text-xs font-semibold px-2 py-1 rounded-full flex items-center gap-1">
                 <BiCrown className="text-white text-sm" />
+                <span>Premium</span>
               </div>
             )}
           </div>

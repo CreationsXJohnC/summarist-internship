@@ -6,9 +6,12 @@ import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { openAuthModal } from '@/store/slices/uiSlice';
 import { logout } from '@/store/slices/authSlice';
 import { useRouter } from 'next/navigation';
+import { AiOutlineSearch } from 'react-icons/ai';
+import { setSearchQuery } from '@/store/slices/booksSlice';
 
 export default function Navbar() {
   const { isAuthenticated, user } = useAppSelector((state) => state.auth);
+  const searchQuery = useAppSelector((state) => state.books.searchQuery);
   const dispatch = useAppDispatch();
   const router = useRouter();
 
@@ -59,9 +62,16 @@ export default function Navbar() {
             </>
           ) : (
             <div className="flex items-center space-x-4">
-              <span className="text-gray-700">
-                Welcome, {user?.displayName || user?.email}
-              </span>
+              <div className="relative w-64">
+                <AiOutlineSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search books..."
+                  value={searchQuery}
+                  onChange={(e) => dispatch(setSearchQuery(e.target.value))}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2bd97c] focus:border-transparent"
+                />
+              </div>
               <button
                 onClick={handleLogout}
                 className="text-gray-700 hover:text-gray-900 cursor-pointer"

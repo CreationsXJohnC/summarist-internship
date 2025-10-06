@@ -58,7 +58,7 @@ const StatisticsSection = () => {
       setActiveIndex((prev) => (prev + 1) % leftHeadings.length);
     }, 2500);
     return () => clearInterval(interval);
-  }, []);
+  }, [leftHeadings.length]);
 
   return (
     <section className="py-20 bg-gray-50">

@@ -4,7 +4,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import { useEffect, useState, useRef } from 'react';
 import Image from 'next/image';
-import { getBookById, Book } from '@/data/mockBooks';
+import type { Book } from '@/data/mockBooks';
 import { 
   AiFillPlayCircle, 
   AiFillPauseCircle, 
@@ -14,13 +14,13 @@ import {
   AiFillClockCircle
 } from 'react-icons/ai';
 import { BiCrown } from 'react-icons/bi';
-import { BsBookmark, BsBookmarkFill } from 'react-icons/bs';
+import { BsBookmark, BsBookmarkFill, BsFillPlayFill } from 'react-icons/bs';
 import { MdSpeed } from 'react-icons/md';
 
 const AudioPlayerPage = () => {
   const params = useParams();
   const router = useRouter();
-  const { isAuthenticated } = useSelector((state: any) => state.auth);
+  const { isAuthenticated, hasHydrated } = useSelector((state: any) => state.auth);
   const audioRef = useRef<HTMLAudioElement>(null);
   
   const [book, setBook] = useState<Book | null>(null);
@@ -33,20 +33,49 @@ const AudioPlayerPage = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    if (!hasHydrated) return;
     if (!isAuthenticated) {
       router.push('/');
       return;
     }
 
     const bookId = params.id as string;
-    const foundBook = getBookById(bookId);
-    
-    if (foundBook) {
-      setBook(foundBook);
-    } else {
-      router.push('/for-you');
-    }
-  }, [params.id, isAuthenticated, router]);
+
+    const fetchBookById = async () => {
+      try {
+        const res = await fetch(`https://us-central1-summaristt.cloudfunctions.net/getBook?id=${bookId}`);
+        if (res.ok) {
+          const data = await res.json();
+          setBook(data as Book);
+          return;
+        }
+      } catch (err) {
+        // ignore and try fallback
+      }
+
+      try {
+        const statuses = ['selected', 'recommended', 'suggested'];
+        const responses = await Promise.all(
+          statuses.map((s) => fetch(`https://us-central1-summaristt.cloudfunctions.net/getBooks?status=${s}`))
+        );
+        for (const r of responses) {
+          if (!r.ok) continue;
+          const list = await r.json();
+          const found = Array.isArray(list) ? (list as Book[]).find((b) => b.id === bookId) : null;
+          if (found) {
+            setBook(found);
+            return;
+          }
+        }
+        router.push('/for-you');
+      } catch (error) {
+        console.error('Failed to fetch book by id', error);
+        router.push('/for-you');
+      }
+    };
+
+    fetchBookById();
+  }, [hasHydrated, params.id, isAuthenticated, router]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -122,11 +151,19 @@ const AudioPlayerPage = () => {
     const seconds = Math.floor(time % 60);
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
+  const formatDurationLabel = (time: number) => {
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    return `${minutes} mins ${seconds} secs`;
+  };
 
   const handleBookmark = () => {
     setIsBookmarked(!isBookmarked);
   };
 
+  if (!hasHydrated) {
+    return null;
+  }
   if (!isAuthenticated) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -169,33 +206,39 @@ const AudioPlayerPage = () => {
         </div>
 
         <div className="max-w-4xl mx-auto">
-          {/* Book Info */}
-          <div className="text-center mb-12">
-            <div className="w-64 h-64 mx-auto mb-6 relative overflow-hidden rounded-lg shadow-lg">
-              <Image
-                src={book.imageLink}
-                alt={book.title}
-                fill
-                className="object-cover"
-                sizes="(max-width: 768px) 100vw, 33vw"
-              />
-              {book.subscriptionRequired && (
-                <div className="absolute top-4 right-4 bg-yellow-400 rounded-full p-2">
-                  <BiCrown className="text-white text-lg" />
-                </div>
-              )}
-            </div>
-            
-            <h1 className="text-3xl font-bold mb-2">{book.title}</h1>
-            <p className="text-xl mb-4">{book.author}</p>
-            
-            <div className="flex items-center justify-center gap-4 text-sm opacity-80">
-              <div className="flex items-center gap-1">
-                <AiFillClockCircle />
-                <span>{book.keyIdeas} key ideas</span>
+          {/* Screenshot-styled Header */}
+          <div className="bg-[#f2f4ef] text-[#032b41] rounded-xl p-6 mb-12">
+            <div className="flex items-center">
+              {/* Left blurb */}
+              <div className="flex-1 pr-8">
+                <h2 className="font-semibold mb-2">How Constant Innovation Creates Radically Successful Businesses</h2>
+                <p className="text-sm text-[#6b7c93]">Selected just for you</p>
               </div>
-              <span>•</span>
-              <span className="capitalize">{book.type}</span>
+
+              {/* Vertical divider */}
+              <div className="w-px h-24 bg-gray-300 mx-4 hidden md:block" />
+
+              {/* Right side: cover + meta */}
+              <div className="flex-1 flex items-center gap-6">
+                <div className="w-20 h-28 relative overflow-hidden rounded shadow">
+                  <Image src={book.imageLink} alt={book.title} fill className="object-cover" sizes="(max-width: 768px) 100vw, 33vw" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-bold">{book.title}</h3>
+                  <p className="text-sm text-[#6b7c93]">{book.author}</p>
+                </div>
+                {/* Play + duration label */}
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => router.push(`/book/${book.id}/listen/transcript`)}
+                    className="w-10 h-10 rounded-full bg-black flex items-center justify-center shadow hover:shadow-md transition"
+                    aria-label="Play"
+                  >
+                    <BsFillPlayFill className="text-white text-xl" />
+                  </button>
+                  <span className="text-sm text-[#032b41]">{formatDurationLabel(duration || 203)}</span>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -236,17 +279,11 @@ const AudioPlayerPage = () => {
               </button>
               
               <button
-                onClick={togglePlayPause}
-                disabled={isLoading}
-                className="bg-white text-[#032b41] rounded-full p-4 hover:bg-gray-100 transition-colors disabled:opacity-50"
+                onClick={() => router.push(`/book/${book.id}/listen/transcript`)}
+                className="bg-white text-[#032b41] rounded-full p-4 hover:bg-gray-100 transition-colors"
+                aria-label="Open transcript"
               >
-                {isLoading ? (
-                  <div className="w-8 h-8 border-2 border-[#032b41] border-t-transparent rounded-full animate-spin" />
-                ) : isPlaying ? (
-                  <AiFillPauseCircle className="text-4xl" />
-                ) : (
-                  <AiFillPlayCircle className="text-4xl" />
-                )}
+                <AiFillPlayCircle className="text-4xl" />
               </button>
               
               <button

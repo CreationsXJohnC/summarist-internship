@@ -25,7 +25,7 @@ const HeroSection = () => {
               <br />
               individuals who barely have time to read,
               <br />
-              and even people who don't like to read.
+              and even people who don&#39;t like to read.
             </p>
             <button
               onClick={handleLoginClick}

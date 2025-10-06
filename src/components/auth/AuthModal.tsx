@@ -11,13 +11,14 @@ import { auth, db, analytics } from '@/lib/firebase';
 import { GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, updateProfile } from 'firebase/auth';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { logEvent } from 'firebase/analytics';
+import type { RootState } from '@/store/store';
 
 export default function AuthModal() {
   const dispatch = useAppDispatch();
-  const isOpen = useAppSelector((state: any) => state.ui.isAuthModalOpen);
-  const modalType = useAppSelector((state: any) => state.ui.authModalType);
-  const isLoading = useAppSelector((state: any) => state.auth.isLoading);
-  const error = useAppSelector((state: any) => state.auth.error);
+  const isOpen = useAppSelector((state: RootState) => state.ui.isAuthModalOpen);
+  const modalType = useAppSelector((state: RootState) => state.ui.authModalType);
+  const isLoading = useAppSelector((state: RootState) => state.auth.isLoading);
+  const error = useAppSelector((state: RootState) => state.auth.error);
   const router = useRouter();
   
   const [email, setEmail] = useState('');
@@ -328,7 +329,7 @@ export default function AuthModal() {
         <div className="text-center mt-6 text-sm">
           {modalType === 'login' ? (
             <>
-              <span className="text-gray-600">Don't have an account? </span>
+              <span className="text-gray-600">Don&#39;t have an account? </span>
               <button
                 onClick={() => dispatch(setAuthModalType('register'))}
                 className="text-[#2bd97c] hover:underline font-medium cursor-pointer"

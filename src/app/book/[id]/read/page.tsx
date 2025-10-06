@@ -4,7 +4,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { getBookById, Book } from '@/data/mockBooks';
+import type { Book } from '@/data/mockBooks';
 import { AiFillClockCircle, AiFillBook } from 'react-icons/ai';
 import { BiCrown } from 'react-icons/bi';
 import { BsBookmark, BsBookmarkFill } from 'react-icons/bs';
@@ -95,7 +95,7 @@ const ReadingPage = () => {
 
     Chapter 3: Overcoming Obstacles
 
-    Every journey to success is filled with obstacles, setbacks, and challenges. The difference between those who succeed and those who don't is not the absence of obstacles, but the ability to overcome them.
+    Every journey to success is filled with obstacles, setbacks, and challenges. The difference between those who succeed and those who don&#39;t is not the absence of obstacles, but the ability to overcome them.
 
     Resilience Building
 
@@ -131,13 +131,41 @@ const ReadingPage = () => {
     }
 
     const bookId = params.id as string;
-    const foundBook = getBookById(bookId);
-    
-    if (foundBook) {
-      setBook(foundBook);
-    } else {
-      router.push('/for-you');
-    }
+
+    const fetchBookById = async () => {
+      try {
+        const res = await fetch(`https://us-central1-summaristt.cloudfunctions.net/getBook?id=${bookId}`);
+        if (res.ok) {
+          const data = await res.json();
+          setBook(data as Book);
+          return;
+        }
+      } catch (err) {
+        // ignore and try fallback
+      }
+
+      try {
+        const statuses = ['selected', 'recommended', 'suggested'];
+        const responses = await Promise.all(
+          statuses.map((s) => fetch(`https://us-central1-summaristt.cloudfunctions.net/getBooks?status=${s}`))
+        );
+        for (const r of responses) {
+          if (!r.ok) continue;
+          const list = await r.json();
+          const found = Array.isArray(list) ? (list as Book[]).find((b) => b.id === bookId) : null;
+          if (found) {
+            setBook(found);
+            return;
+          }
+        }
+        router.push('/for-you');
+      } catch (error) {
+        console.error('Failed to fetch book by id', error);
+        router.push('/for-you');
+      }
+    };
+
+    fetchBookById();
   }, [params.id, isAuthenticated, router]);
 
   useEffect(() => {

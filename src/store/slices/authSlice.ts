@@ -17,6 +17,8 @@ interface AuthState {
   isLoading: boolean;
   isAuthenticated: boolean;
   error: string | null;
+  success: string | null;
+  hasHydrated: boolean;
 }
 
 const initialState: AuthState = {
@@ -24,6 +26,8 @@ const initialState: AuthState = {
   isLoading: false,
   isAuthenticated: false,
   error: null,
+  success: null,
+  hasHydrated: false,
 };
 
 const authSlice = createSlice({
@@ -42,6 +46,11 @@ const authSlice = createSlice({
       state.error = action.payload;
       state.isLoading = false;
     },
+    setSuccess: (state, action: PayloadAction<string>) => {
+      state.success = action.payload;
+      state.isLoading = false;
+      state.error = null;
+    },
     clearError: (state) => {
       state.error = null;
     },
@@ -50,8 +59,11 @@ const authSlice = createSlice({
       state.isAuthenticated = false;
       state.error = null;
     },
+    setHydrated: (state, action: PayloadAction<boolean>) => {
+      state.hasHydrated = action.payload;
+    },
   },
 });
 
-export const { setLoading, setUser, setError, clearError, logout } = authSlice.actions;
+export const { setLoading, setUser, setError, setSuccess, clearError, logout, setHydrated } = authSlice.actions;
 export default authSlice.reducer;

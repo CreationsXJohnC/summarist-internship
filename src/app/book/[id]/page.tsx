@@ -12,12 +12,13 @@ import { BsBookmark, BsBookmarkFill } from 'react-icons/bs';
 const BookDetailPage = () => {
   const params = useParams();
   const router = useRouter();
-  const { isAuthenticated } = useSelector((state: any) => state.auth);
+  const { isAuthenticated, hasHydrated } = useSelector((state: any) => state.auth);
   const [book, setBook] = useState<Book | null>(null);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [activeTab, setActiveTab] = useState<'summary' | 'details'>('summary');
 
   useEffect(() => {
+    if (!hasHydrated) return;
     if (!isAuthenticated) {
       router.push('/');
       return;
@@ -31,7 +32,7 @@ const BookDetailPage = () => {
     } else {
       router.push('/for-you');
     }
-  }, [params.id, isAuthenticated, router]);
+  }, [hasHydrated, params.id, isAuthenticated, router]);
 
   const handleBookmark = () => {
     setIsBookmarked(!isBookmarked);
@@ -45,6 +46,9 @@ const BookDetailPage = () => {
     router.push(`/book/${book?.id}/listen`);
   };
 
+  if (!hasHydrated) {
+    return null;
+  }
   if (!isAuthenticated) {
     return (
       <div className="flex items-center justify-center min-h-screen">
