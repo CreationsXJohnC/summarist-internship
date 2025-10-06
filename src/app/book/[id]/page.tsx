@@ -1,63 +1,83 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
-import { useSelector } from 'react-redux';
+import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { getBookById, Book } from '@/data/mockBooks';
+import { Book, addToLibrary } from '@/store/slices/booksSlice';
 import { AiFillStar, AiFillClockCircle, AiFillPlayCircle, AiFillBook } from 'react-icons/ai';
 import { BiCrown } from 'react-icons/bi';
 import { BsBookmark, BsBookmarkFill } from 'react-icons/bs';
+import { openAuthModal } from '@/store/slices/uiSlice';
 
 const BookDetailPage = () => {
   const params = useParams();
   const router = useRouter();
-  const { isAuthenticated, hasHydrated } = useSelector((state: any) => state.auth);
+  const dispatch = useAppDispatch();
+  const { isAuthenticated, hasHydrated, user } = useAppSelector((state) => state.auth);
   const [book, setBook] = useState<Book | null>(null);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [activeTab, setActiveTab] = useState<'summary' | 'details'>('summary');
 
   useEffect(() => {
     if (!hasHydrated) return;
-    if (!isAuthenticated) {
-      router.push('/');
-      return;
-    }
-
     const bookId = params.id as string;
-    const foundBook = getBookById(bookId);
-    
-    if (foundBook) {
-      setBook(foundBook);
-    } else {
-      router.push('/for-you');
-    }
-  }, [hasHydrated, params.id, isAuthenticated, router]);
+    const fetchBook = async () => {
+      try {
+        const res = await fetch(`https://us-central1-summaristt.cloudfunctions.net/getBook?id=${bookId}`);
+        if (!res.ok) throw new Error('Failed to fetch book');
+        const data = await res.json();
+        setBook(data as Book);
+      } catch (err) {
+        router.push('/for-you');
+      }
+    };
+    fetchBook();
+  }, [hasHydrated, params.id, router]);
 
   const handleBookmark = () => {
-    setIsBookmarked(!isBookmarked);
+    if (!isAuthenticated) {
+      dispatch(openAuthModal('login'));
+      return;
+    }
+    if (book) {
+      dispatch(addToLibrary(book));
+      setIsBookmarked(true);
+    }
   };
 
   const handleRead = () => {
-    router.push(`/book/${book?.id}/read`);
+    if (!isAuthenticated) {
+      dispatch(openAuthModal('login'));
+      return;
+    }
+    if (!book) return;
+    const isPremium = !!book.subscriptionRequired;
+    const isSubscribed = user?.subscription?.status === 'active';
+    if (isPremium && !isSubscribed) {
+      router.push('/choose-plan');
+      return;
+    }
+    router.push(`/book/${book.id}/read`);
   };
 
   const handleListen = () => {
-    router.push(`/book/${book?.id}/listen`);
+    if (!isAuthenticated) {
+      dispatch(openAuthModal('login'));
+      return;
+    }
+    if (!book) return;
+    const isPremium = !!book.subscriptionRequired;
+    const isSubscribed = user?.subscription?.status === 'active';
+    if (isPremium && !isSubscribed) {
+      router.push('/choose-plan');
+      return;
+    }
+    router.push(`/book/${book.id}/listen`);
   };
 
   if (!hasHydrated) {
     return null;
-  }
-  if (!isAuthenticated) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-[#032b41] mb-4">Access Denied</h2>
-          <p className="text-gray-600">Please log in to access book details.</p>
-        </div>
-      </div>
-    );
   }
 
   if (!book) {
@@ -74,7 +94,7 @@ const BookDetailPage = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-[#032b41] to-[#2bd97c] text-white py-12">
+      <div className="bg-white text-[#032b41] py-12">
         <div className="container mx-auto px-6">
           <div className="flex flex-col lg:flex-row items-center gap-8">
             <div className="lg:w-1/3">
@@ -103,7 +123,7 @@ const BookDetailPage = () => {
                 <div className="flex items-center gap-2">
                   <AiFillStar className="text-yellow-400" />
                   <span>{book.averageRating}</span>
-                  <span className="text-gray-300">({book.totalRating.toLocaleString()} ratings)</span>
+                  <span className="text-gray-500">({book.totalRating.toLocaleString()} ratings)</span>
                 </div>
                 
                 <div className="flex items-center gap-2">
@@ -120,7 +140,7 @@ const BookDetailPage = () => {
                 {book.tags.map((tag, index) => (
                   <span
                     key={index}
-                    className="bg-white bg-opacity-20 text-white px-3 py-1 rounded-full text-sm"
+                    className="bg-gray-100 text-[#032b41] px-3 py-1 rounded-full text-sm"
                   >
                     {tag}
                   </span>
@@ -130,21 +150,21 @@ const BookDetailPage = () => {
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <button
                   onClick={handleRead}
-                  className="bg-white text-[#032b41] px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center justify-center gap-2"
+                  className="bg-[#2bd97c] text-white px-8 py-3 rounded-lg font-semibold hover:bg-[#25c470] transition-colors flex items-center justify-center gap-2"
                 >
                   <AiFillBook />
                   Read
                 </button>
                 <button
                   onClick={handleListen}
-                  className="border border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-[#032b41] transition-colors flex items-center justify-center gap-2"
+                  className="border border-[#032b41] text-[#032b41] px-8 py-3 rounded-lg font-semibold hover:bg-[#2bd97c] hover:text-[#032b41] transition-colors flex items-center justify-center gap-2"
                 >
                   <AiFillPlayCircle />
                   Listen
                 </button>
                 <button
                   onClick={handleBookmark}
-                  className="border border-white text-white px-4 py-3 rounded-lg font-semibold hover:bg-white hover:text-[#032b41] transition-colors flex items-center justify-center"
+                  className="border border-[#032b41] text-[#032b41] px-4 py-3 rounded-lg font-semibold hover:bg-[#2bd97c] hover:text-[#032b41] transition-colors flex items-center justify-center"
                 >
                   {isBookmarked ? <BsBookmarkFill /> : <BsBookmark />}
                 </button>

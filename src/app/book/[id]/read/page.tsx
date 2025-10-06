@@ -192,16 +192,7 @@ const ReadingPage = () => {
     setFontSize(prev => Math.max(prev - 2, 14));
   };
 
-  if (!isAuthenticated) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-[#032b41] mb-4">Access Denied</h2>
-          <p className="text-gray-600">Please log in to read books.</p>
-        </div>
-      </div>
-    );
-  }
+  // If not authenticated, routing logic elsewhere should open modal or redirect; don't replace page with a full-screen block.
 
   if (!book) {
     return (
