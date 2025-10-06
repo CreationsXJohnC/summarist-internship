@@ -7,8 +7,10 @@ import { setUser, setLoading, setError } from '@/store/slices/authSlice';
 import { AiOutlineClose, AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai';
 import { FcGoogle } from 'react-icons/fc';
 import { useRouter } from 'next/navigation';
-import { auth } from '@/lib/firebase';
+import { auth, db, analytics } from '@/lib/firebase';
 import { GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, updateProfile } from 'firebase/auth';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { logEvent } from 'firebase/analytics';
 
 export default function AuthModal() {
   const dispatch = useAppDispatch();
@@ -50,6 +52,25 @@ export default function AuthModal() {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
+
+      await setDoc(
+        doc(db, 'users', user.uid),
+        {
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName,
+          photoURL: user.photoURL || null,
+          provider: 'google',
+          createdAt: serverTimestamp(),
+          lastLoginAt: serverTimestamp(),
+        },
+        { merge: true }
+      );
+
+      if (analytics) {
+        logEvent(analytics, 'login', { method: 'google' });
+      }
+
       dispatch(setUser({
         uid: user.uid,
         email: user.email,
@@ -62,9 +83,19 @@ export default function AuthModal() {
       const code = err?.code;
       const message = (err?.message || '').toLowerCase();
       if (code === 'auth/invalid-api-key' || message.includes('api-key-not-valid')) {
-        dispatch(setError('Google sign-in is unavailable: Firebase API key is invalid or missing. Please check your environment configuration.'));
+        dispatch(setError('Google sign-in is unavailable: Firebase API key is invalid or missing.'));
+      } else if (code === 'auth/configuration-not-found') {
+        dispatch(setError('Google sign-in is not configured for this project. Please enable the Google provider and authorize this domain.'));
+      } else if (code === 'auth/unauthorized-domain') {
+        dispatch(setError('This domain is not authorized for sign-in. Please add it in Firebase Authentication > Settings > Authorized domains.'));
+      } else if (code === 'auth/popup-blocked') {
+        dispatch(setError('Sign-in popup was blocked by the browser. Please allow popups and try again.'));
+      } else if (code === 'auth/popup-closed-by-user') {
+        dispatch(setError('Sign-in popup closed before completing authentication. Please try again.'));
+      } else if (code === 'auth/network-request-failed') {
+        dispatch(setError('Network error during sign-in. Check your connection and try again.'));
       } else {
-        dispatch(setError(err?.message || 'Google sign-in failed'));
+        dispatch(setError(err?.message || 'Google sign-in failed. Please try again.'));
       }
     } finally {
       dispatch(setLoading(false));
@@ -94,6 +125,21 @@ export default function AuthModal() {
       if (modalType === 'login') {
         const cred = await signInWithEmailAndPassword(auth, email, password);
         const user = cred.user;
+        await setDoc(
+          doc(db, 'users', user.uid),
+          {
+            uid: user.uid,
+            email: user.email,
+            displayName: user.displayName || (user.email ? user.email.split('@')[0] : null),
+            provider: 'password',
+            lastLoginAt: serverTimestamp(),
+          },
+          { merge: true }
+        );
+
+        if (analytics) {
+          logEvent(analytics, 'login', { method: 'password' });
+        }
         dispatch(setUser({
           uid: user.uid,
           email: user.email,
@@ -108,6 +154,23 @@ export default function AuthModal() {
           await updateProfile(cred.user, { displayName: cred.user.email.split('@')[0] });
         }
         const user = cred.user;
+        await setDoc(
+          doc(db, 'users', user.uid),
+          {
+            uid: user.uid,
+            email: user.email,
+            displayName: user.displayName || (user.email ? user.email.split('@')[0] : null),
+            photoURL: user.photoURL || null,
+            provider: 'password',
+            createdAt: serverTimestamp(),
+            lastLoginAt: serverTimestamp(),
+          },
+          { merge: true }
+        );
+
+        if (analytics) {
+          logEvent(analytics, 'sign_up', { method: 'password' });
+        }
         dispatch(setUser({
           uid: user.uid,
           email: user.email,
