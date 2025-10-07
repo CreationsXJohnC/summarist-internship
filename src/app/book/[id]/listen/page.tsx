@@ -10,11 +10,8 @@ import {
   AiFillPauseCircle, 
   AiFillStepBackward, 
   AiFillStepForward,
-  AiFillSound,
-  AiFillClockCircle
 } from 'react-icons/ai';
-import { BiCrown } from 'react-icons/bi';
-import { BsBookmark, BsBookmarkFill, BsFillPlayFill } from 'react-icons/bs';
+import { BsBookmark, BsBookmarkFill } from 'react-icons/bs';
 import { MdSpeed } from 'react-icons/md';
 
 const AudioPlayerPage = () => {
