@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAppSelector } from '@/store/hooks';
 import { AiOutlineDown, AiOutlineUp } from 'react-icons/ai';
 
@@ -10,6 +10,14 @@ export default function ChoosePlanPage() {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showBillingNotice, setShowBillingNotice] = useState(false);
+
+  useEffect(() => {
+    const host = typeof window !== 'undefined' ? window.location.hostname : '';
+    const isLocal = host === 'localhost' || host.startsWith('127.') || host.startsWith('0.0.0.0');
+    const isVercelPreview = host.endsWith('.vercel.app');
+    setShowBillingNotice(isLocal || isVercelPreview);
+  }, []);
 
   const prices = {
     monthly: {
@@ -149,6 +157,12 @@ export default function ChoosePlanPage() {
                 <li>• Priority support</li>
                 <li>• Early access to new titles</li>
               </ul>
+
+              {showBillingNotice && (
+                <div className="mb-4 rounded-md border border-yellow-200 bg-yellow-50 p-3 text-sm text-yellow-800">
+                  Purchases may be temporarily unavailable in this environment while billing setup is being finalized. If checkout returns a server error, please try again later after billing is configured.
+                </div>
+              )}
 
               {error && (
                 <div className="mb-4 text-red-600 text-sm">{error}</div>
