@@ -73,10 +73,8 @@ export default function Sidebar() {
 
         {/* Logo area */}
         <div className="p-6 border-b border-gray-200">
-          <Link href="/" onClick={closeSidebar} className="cursor-pointer">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/assets/logo.png" alt="Summarist" className="h-8" />
-          </Link>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/assets/logo.png" alt="Summarist" className="h-8 select-none cursor-default" />
         </div>
 
         {/* Navigation */}
