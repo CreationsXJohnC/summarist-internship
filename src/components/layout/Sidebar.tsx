@@ -2,7 +2,7 @@
 
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import type { RootState } from '@/store/store';
 import { setSidebarOpen } from '@/store/slices/uiSlice';
@@ -21,23 +21,25 @@ import { logout } from '@/store/slices/authSlice';
 const sidebarItems = [
   { href: '/for-you', icon: AiOutlineHome, label: 'For you' },
   { href: '/library', icon: AiOutlineBook, label: 'My Library' },
-  { href: '/highlights', icon: AiOutlineHeart, label: 'Highlights' },
-  { href: '/search', icon: AiOutlineSearch, label: 'Search' },
+  { href: '/highlights', icon: AiOutlineHeart, label: 'Highlights', disabled: true },
+  { href: '/search', icon: AiOutlineSearch, label: 'Search', disabled: true },
 ];
 
 const bottomItems = [
   { href: '/settings', icon: AiOutlineSetting, label: 'Settings' },
-  { href: '/help', icon: AiOutlineQuestionCircle, label: 'Help & Support' },
+  { href: '/help', icon: AiOutlineQuestionCircle, label: 'Help & Support', disabled: true },
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const isSidebarOpen = useAppSelector((state: RootState) => state.ui.isSidebarOpen);
   const isAuthenticated = useAppSelector((state: RootState) => state.auth.isAuthenticated);
   const dispatch = useAppDispatch();
 
   const handleLogout = () => {
     dispatch(logout());
+    router.push('/');
   };
 
   const closeSidebar = () => {
@@ -58,9 +60,9 @@ export default function Sidebar() {
       
       {/* Sidebar */}
       <aside className={`
-        fixed top-0 left-0 h-full w-[200px] bg-[#f7faf9] border-r border-gray-200 z-50 transform transition-transform duration-300 ease-in-out
+        fixed top-0 left-0 h-screen w-[200px] bg-[#f7faf9] border-r border-gray-200 z-50 transform transition-transform duration-300 ease-in-out flex flex-col
         ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-        lg:translate-x-0 lg:static lg:z-auto
+        lg:translate-x-0 lg:z-auto
       `}>
         {/* Close button for mobile */}
         <div className="lg:hidden flex justify-end p-4">
@@ -78,7 +80,7 @@ export default function Sidebar() {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-4 py-6">
+        <nav className="flex-1 flex flex-col px-4 py-6">
           <ul className="space-y-2">
             {sidebarItems.map((item) => {
               const Icon = item.icon;
@@ -86,34 +88,15 @@ export default function Sidebar() {
               
               return (
                 <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    onClick={closeSidebar}
-                    className={`
-                      flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors cursor-pointer
-                      ${isActive 
-                        ? 'bg-[#2bd97c] text-[#032b41] font-medium' 
-                        : 'text-gray-700 hover:bg-gray-100'
-                      }
-                    `}
-                  >
-                    <Icon className="w-5 h-5" />
-                    <span>{item.label}</span>
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-
-          {/* Bottom items */}
-          <div className="mt-8 pt-8 border-t border-gray-200">
-            <ul className="space-y-2">
-              {bottomItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = pathname === item.href;
-                
-                return (
-                  <li key={item.href}>
+                  {item.disabled ? (
+                    <div
+                      className="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 cursor-not-allowed select-none"
+                      aria-disabled="true"
+                    >
+                      <Icon className="w-5 h-5" />
+                      <span>{item.label}</span>
+                    </div>
+                  ) : (
                     <Link
                       href={item.href}
                       onClick={closeSidebar}
@@ -128,6 +111,45 @@ export default function Sidebar() {
                       <Icon className="w-5 h-5" />
                       <span>{item.label}</span>
                     </Link>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+
+          {/* Bottom items */}
+          <div className="mt-auto pt-6">
+            <ul className="space-y-2">
+              {bottomItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = pathname === item.href;
+                
+                return (
+                  <li key={item.href}>
+                    {item.disabled ? (
+                      <div
+                        className="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 cursor-not-allowed select-none"
+                        aria-disabled="true"
+                      >
+                        <Icon className="w-5 h-5" />
+                        <span>{item.label}</span>
+                      </div>
+                    ) : (
+                      <Link
+                        href={item.href}
+                        onClick={closeSidebar}
+                        className={`
+                          flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors cursor-pointer
+                          ${isActive 
+                            ? 'bg-[#2bd97c] text-[#032b41] font-medium' 
+                            : 'text-gray-700 hover:bg-gray-100'
+                          }
+                        `}
+                      >
+                        <Icon className="w-5 h-5" />
+                        <span>{item.label}</span>
+                      </Link>
+                    )}
                   </li>
                 );
               })}

@@ -4,7 +4,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { Book, addToLibrary } from '@/store/slices/booksSlice';
+import { Book, addToLibrary, removeFromLibrary } from '@/store/slices/booksSlice';
 import { AiFillStar, AiFillClockCircle, AiFillPlayCircle, AiFillBook } from 'react-icons/ai';
 import { BiCrown } from 'react-icons/bi';
 import { BsBookmark, BsBookmarkFill } from 'react-icons/bs';
@@ -18,22 +18,35 @@ const BookDetailPage = () => {
   const [book, setBook] = useState<Book | null>(null);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [activeTab, setActiveTab] = useState<'summary' | 'details'>('summary');
+  const [isLoading, setIsLoading] = useState(false);
+  const library = useAppSelector((state) => state.books.library);
 
   useEffect(() => {
     if (!hasHydrated) return;
     const bookId = params.id as string;
     const fetchBook = async () => {
       try {
+        setIsLoading(true);
         const res = await fetch(`https://us-central1-summaristt.cloudfunctions.net/getBook?id=${bookId}`);
         if (!res.ok) throw new Error('Failed to fetch book');
         const data = await res.json();
         setBook(data as Book);
       } catch (err) {
         router.push('/for-you');
+      } finally {
+        setIsLoading(false);
       }
     };
     fetchBook();
   }, [hasHydrated, params.id, router]);
+
+  useEffect(() => {
+    if (book) {
+      setIsBookmarked(library.some((b) => b.id === book.id));
+    } else {
+      setIsBookmarked(false);
+    }
+  }, [book, library]);
 
   const handleBookmark = () => {
     if (!isAuthenticated) {
@@ -41,8 +54,13 @@ const BookDetailPage = () => {
       return;
     }
     if (book) {
-      dispatch(addToLibrary(book));
-      setIsBookmarked(true);
+      if (isBookmarked) {
+        dispatch(removeFromLibrary(book.id));
+        setIsBookmarked(false);
+      } else {
+        dispatch(addToLibrary(book));
+        setIsBookmarked(true);
+      }
     }
   };
 
@@ -77,7 +95,65 @@ const BookDetailPage = () => {
   };
 
   if (!hasHydrated) {
-    return null;
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="bg-white text-[#032b41] py-12">
+          <div className="container mx-auto px-6">
+            <div className="flex flex-col lg:flex-row items-center gap-8 animate-pulse">
+              <div className="lg:w-1/3">
+                <div className="w-64 h-96 mx-auto rounded-lg bg-gray-200" />
+              </div>
+              <div className="lg:w-2/3 w-full">
+                <div className="h-8 bg-gray-200 rounded w-2/3 mb-4"></div>
+                <div className="h-6 bg-gray-200 rounded w-1/2 mb-4"></div>
+                <div className="h-5 bg-gray-200 rounded w-1/3"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="container mx-auto px-4 py-12">
+          <div className="max-w-4xl mx-auto">
+            <div className="h-10 bg-gray-200 rounded w-1/2 mb-8 animate-pulse"></div>
+            <div className="space-y-4">
+              {[...Array(3)].map((_, idx) => (
+                <div key={idx} className="h-4 bg-gray-200 rounded w-full animate-pulse"></div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="bg-white text-[#032b41] py-12">
+          <div className="container mx-auto px-6">
+            <div className="flex flex-col lg:flex-row items-center gap-8 animate-pulse">
+              <div className="lg:w-1/3">
+                <div className="w-64 h-96 mx-auto rounded-lg bg-gray-200" />
+              </div>
+              <div className="lg:w-2/3 w-full">
+                <div className="h-8 bg-gray-200 rounded w-2/3 mb-4"></div>
+                <div className="h-6 bg-gray-200 rounded w-1/2 mb-4"></div>
+                <div className="h-5 bg-gray-200 rounded w-1/3"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="container mx-auto px-4 py-12">
+          <div className="max-w-4xl mx-auto">
+            <div className="h-10 bg-gray-200 rounded w-1/2 mb-8 animate-pulse"></div>
+            <div className="space-y-4">
+              {[...Array(6)].map((_, idx) => (
+                <div key={idx} className="h-4 bg-gray-200 rounded w-full animate-pulse"></div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (!book) {
@@ -175,7 +251,7 @@ const BookDetailPage = () => {
       </div>
 
       {/* Content Section */}
-      <div className="container mx-auto px-6 py-12">
+      <div className="container mx-auto px-4 py-12">
         <div className="max-w-4xl mx-auto">
           {/* Tabs */}
           <div className="flex border-b border-gray-200 mb-8">
@@ -206,8 +282,13 @@ const BookDetailPage = () => {
             <div className="space-y-8">
               <div>
                 <h3 className="text-2xl font-bold text-[#032b41] mb-4">What's it about?</h3>
-                <p className="text-gray-700 leading-relaxed text-lg">
-                  {book.summary}
+                <p className="text-gray-700 leading-relaxed">
+                  {(book.summary || '')
+                    .trim()
+                    .split(/\n\n|\r\n\r\n/)[0]
+                    ?.split(/(?<=\.)\s+/)
+                    .slice(0, 3)
+                    .join(' ') || 'No summary available.'}
                 </p>
               </div>
               

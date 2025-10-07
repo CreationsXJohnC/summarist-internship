@@ -1,10 +1,10 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
-import { useSelector } from 'react-redux';
+import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import type { Book } from '@/data/mockBooks';
+import { Book, addToLibrary, removeFromLibrary, addToFinished } from '@/store/slices/booksSlice';
 import { AiFillClockCircle, AiFillBook } from 'react-icons/ai';
 import { BiCrown } from 'react-icons/bi';
 import { BsBookmark, BsBookmarkFill } from 'react-icons/bs';
@@ -13,116 +13,21 @@ import { MdTextIncrease, MdTextDecrease } from 'react-icons/md';
 const ReadingPage = () => {
   const params = useParams();
   const router = useRouter();
-  const { isAuthenticated } = useSelector((state: any) => state.auth);
+  const { isAuthenticated } = useAppSelector((state) => state.auth);
   
   const [book, setBook] = useState<Book | null>(null);
+  const dispatch = useAppDispatch();
+  const library = useAppSelector((state) => state.books.library);
+  const finishedBooks = useAppSelector((state) => state.books.finishedBooks);
+
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [fontSize, setFontSize] = useState(18);
   const [readingProgress, setReadingProgress] = useState(0);
 
-  // Mock reading content - in a real app, this would come from the API
-  const mockContent = `
-    Chapter 1: The Foundation of Success
-
-    Success is not a destination, but a journey of continuous growth and learning. In this comprehensive guide, we explore the fundamental principles that separate high achievers from the rest.
-
-    The Power of Habits
-
-    Our daily habits shape our destiny more than any single decision we make. Research shows that approximately 40% of our daily actions are performed out of habit, not conscious decision-making. This means that by changing our habits, we can literally transform our lives.
-
-    Consider the compound effect of small, consistent actions. A person who reads for just 30 minutes a day will consume approximately 50 books per year. Over a decade, that's 500 books - enough knowledge to become an expert in multiple fields.
-
-    The Mindset Revolution
-
-    Your mindset is the lens through which you view the world. A growth mindset believes that abilities and intelligence can be developed through dedication and hard work. This view creates a love of learning and resilience that is essential for great accomplishment.
-
-    Fixed mindset individuals believe their basic abilities, intelligence, and talents are fixed traits. They spend their time documenting their intelligence or talent instead of developing them. They also believe that talent alone creates success—without effort.
-
-    Building Your Success Framework
-
-    1. Define Your Vision: What does success look like for you? Be specific and write it down.
-
-    2. Set Clear Goals: Break your vision into achievable, measurable goals with deadlines.
-
-    3. Develop Daily Habits: Create routines that move you closer to your goals every day.
-
-    4. Embrace Failure: View setbacks as learning opportunities, not permanent defeats.
-
-    5. Surround Yourself with Growth: Choose relationships and environments that challenge and inspire you.
-
-    The Science of Achievement
-
-    Neuroscience research reveals that our brains are remarkably plastic. We can literally rewire our neural pathways through consistent practice and focused attention. This means that the skills and mindsets required for success can be developed at any age.
-
-    The key is understanding that mastery requires deliberate practice - focused, goal-oriented practice that pushes you beyond your comfort zone. This type of practice is often uncomfortable, but it's the only way to achieve true expertise.
-
-    Chapter 2: The Daily Disciplines
-
-    Excellence is not an act, but a habit. The most successful people in the world have mastered the art of daily disciplines - small, consistent actions that compound over time to create extraordinary results.
-
-    Morning Rituals
-
-    How you start your day sets the tone for everything that follows. Successful individuals often share similar morning routines:
-
-    - Early rising (typically between 5-6 AM)
-    - Physical exercise or movement
-    - Meditation or mindfulness practice
-    - Reading or learning
-    - Planning and goal review
-
-    These activities prime the brain for peak performance and create momentum that carries throughout the day.
-
-    The Power of Focus
-
-    In our age of constant distraction, the ability to focus deeply has become a superpower. Research by Cal Newport shows that the ability to focus without distraction on a cognitively demanding task is becoming increasingly rare - and increasingly valuable.
-
-    Deep work, as Newport calls it, is the ability to focus without distraction on a cognitively demanding task. It's a skill that allows you to quickly master complicated information and produce better results in less time.
-
-    Time Management Mastery
-
-    Time is our most precious resource, yet most people manage it poorly. The most effective approach to time management involves:
-
-    1. Time blocking: Scheduling specific blocks of time for different activities
-    2. The 80/20 rule: Focusing on the 20% of activities that produce 80% of results
-    3. Elimination: Saying no to non-essential commitments
-    4. Batch processing: Grouping similar tasks together
-
-    Continuous Learning
-
-    The half-life of skills is shrinking rapidly. What you learned in school may be obsolete within a few years. The solution is to become a lifelong learner, constantly updating and expanding your knowledge base.
-
-    The most successful people read voraciously, attend seminars, hire coaches, and seek out mentors. They understand that learning is not a phase of life, but a way of life.
-
-    Chapter 3: Overcoming Obstacles
-
-    Every journey to success is filled with obstacles, setbacks, and challenges. The difference between those who succeed and those who don&#39;t is not the absence of obstacles, but the ability to overcome them.
-
-    Resilience Building
-
-    Resilience is like a muscle - it grows stronger with use. Each time you face a challenge and push through it, you build your capacity to handle future difficulties.
-
-    Key strategies for building resilience include:
-
-    - Reframing challenges as opportunities
-    - Building a strong support network
-    - Practicing stress management techniques
-    - Maintaining perspective during difficult times
-    - Learning from failure and setbacks
-
-    The Fear Factor
-
-    Fear is often the biggest obstacle to success. Fear of failure, fear of rejection, fear of success - these emotions can paralyze us and prevent us from taking the actions necessary to achieve our goals.
-
-    The antidote to fear is action. When we take action despite our fears, we prove to ourselves that we're capable of more than we imagined. Each small act of courage builds our confidence and reduces the power of fear over our lives.
-
-    Conclusion
-
-    Success is not about perfection - it's about progress. It's about becoming a little bit better each day, building habits that serve your goals, and persisting through challenges with resilience and determination.
-
-    Remember, the journey of a thousand miles begins with a single step. Take that step today, and then take another tomorrow. Before you know it, you'll have traveled further than you ever thought possible.
-
-    The principles in this book are not just theories - they're proven strategies used by the most successful people in the world. Apply them consistently, and you too can achieve extraordinary results in your life.
-  `;
+  // Use the book's own description or summary for reading content
+  const readingText = (book?.bookDescription && book.bookDescription.trim().length > 0)
+    ? book.bookDescription
+    : (book?.summary || '');
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -180,8 +85,28 @@ const ReadingPage = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  useEffect(() => {
+    if (book) {
+      setIsBookmarked(library.some((b) => b.id === book.id));
+    } else {
+      setIsBookmarked(false);
+    }
+  }, [book, library]);
+
   const handleBookmark = () => {
-    setIsBookmarked(!isBookmarked);
+    if (!isAuthenticated) {
+      router.push('/');
+      return;
+    }
+    if (book) {
+      if (isBookmarked) {
+        dispatch(removeFromLibrary(book.id));
+        setIsBookmarked(false);
+      } else {
+        dispatch(addToLibrary(book));
+        setIsBookmarked(true);
+      }
+    }
   };
 
   const increaseFontSize = () => {
@@ -191,6 +116,17 @@ const ReadingPage = () => {
   const decreaseFontSize = () => {
     setFontSize(prev => Math.max(prev - 2, 14));
   };
+
+  // Auto-mark as finished when near end
+  useEffect(() => {
+    if (!book) return;
+    if (readingProgress >= 95) {
+      const isFinished = finishedBooks.some((b) => b.id === book.id);
+      if (!isFinished) {
+        dispatch(addToFinished(book));
+      }
+    }
+  }, [readingProgress, book, finishedBooks, dispatch]);
 
   // If not authenticated, routing logic elsewhere should open modal or redirect; don't replace page with a full-screen block.
 
@@ -277,7 +213,7 @@ const ReadingPage = () => {
       </div>
 
       {/* Content */}
-      <div className="container mx-auto px-6 py-12">
+      <div className="container mx-auto px-4 py-12">
         <div className="max-w-4xl mx-auto">
           {/* Book Header */}
           <div className="text-center mb-12">
@@ -318,33 +254,14 @@ const ReadingPage = () => {
               className="prose prose-lg max-w-none leading-relaxed text-gray-800"
               style={{ fontSize: `${fontSize}px`, lineHeight: '1.8' }}
             >
-              {mockContent.split('\n\n').map((paragraph, index) => {
-                if (paragraph.trim().startsWith('Chapter')) {
-                  return (
-                    <h2 key={index} className="text-2xl font-bold text-[#032b41] mt-8 mb-4">
-                      {paragraph.trim()}
-                    </h2>
-                  );
-                }
-                
-                if (paragraph.trim() && !paragraph.trim().startsWith(' ')) {
-                  return (
-                    <h3 key={index} className="text-xl font-semibold text-[#032b41] mt-6 mb-3">
-                      {paragraph.trim()}
-                    </h3>
-                  );
-                }
-                
-                if (paragraph.trim()) {
-                  return (
-                    <p key={index} className="mb-4">
-                      {paragraph.trim()}
-                    </p>
-                  );
-                }
-                
-                return null;
-              })}
+              {readingText
+                .split(/\n\n|\r\n\r\n/)
+                .filter((p) => p.trim().length > 0)
+                .map((paragraph, index) => (
+                  <p key={index} className="mb-4">
+                    {paragraph.trim()}
+                  </p>
+                ))}
             </div>
           </div>
 

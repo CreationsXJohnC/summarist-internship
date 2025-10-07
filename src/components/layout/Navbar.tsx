@@ -6,8 +6,8 @@ import Link from 'next/link';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { openAuthModal } from '@/store/slices/uiSlice';
 import { logout } from '@/store/slices/authSlice';
-import { useRouter } from 'next/navigation';
-import { AiOutlineSearch, AiFillStar } from 'react-icons/ai';
+import { useRouter, usePathname } from 'next/navigation';
+import { AiOutlineSearch, AiFillStar, AiOutlineMenu, AiOutlineHome, AiOutlineBook, AiOutlineHeart, AiOutlineSetting, AiOutlineQuestionCircle, AiOutlineLogout } from 'react-icons/ai';
 import { setSearchQuery } from '@/store/slices/booksSlice';
 
 
@@ -82,7 +82,22 @@ export default function Navbar() {
   const sourceBooks = React.useMemo(() => [...recommendedBooks, ...suggestedBooks], [recommendedBooks, suggestedBooks]);
   const dispatch = useAppDispatch();
   const router = useRouter();
+  const pathname = usePathname();
   const [showSuggestions, setShowSuggestions] = React.useState(false);
+  const [menuOpen, setMenuOpen] = React.useState(false);
+
+  // Sidebar-equivalent items for hamburger menu
+  const sidebarItems = [
+    { href: '/for-you', icon: AiOutlineHome, label: 'For you', disabled: false },
+    { href: '/library', icon: AiOutlineBook, label: 'My Library', disabled: false },
+    { href: '/highlights', icon: AiOutlineHeart, label: 'Highlights', disabled: true },
+    { href: '/search', icon: AiOutlineSearch, label: 'Search', disabled: true },
+  ];
+
+  const bottomItems = [
+    { href: '/settings', icon: AiOutlineSetting, label: 'Settings', disabled: false },
+    { href: '/help', icon: AiOutlineQuestionCircle, label: 'Help & Support', disabled: true },
+  ];
 
   const handleLogin = () => {
     dispatch(openAuthModal('login'));
@@ -90,25 +105,28 @@ export default function Navbar() {
 
   const handleLogout = () => {
     dispatch(logout());
-    router.push('/');
+    router.replace('/');
+    setMenuOpen(false);
   };
 
   return (
     <nav className="h-20 bg-white border-b border-gray-200">
       <div className="max-w-[1070px] mx-auto px-6 h-full flex items-center justify-between">
         {/* Logo */}
-        <Link href="/" className="flex items-center cursor-pointer">
-          <Image
-            src="/assets/logo.png"
-            alt="Summarist Logo"
-            width={200}
-            height={40}
-            className="h-10 w-auto"
-          />
-        </Link>
+        {!isAuthenticated && (
+          <Link href="/" className="flex items-center cursor-pointer">
+            <Image
+              src="/assets/logo.png"
+              alt="Summarist Logo"
+              width={200}
+              height={40}
+              className="h-10 w-auto"
+            />
+          </Link>
+        )}
 
         {/* Navigation Links */}
-        <div className="flex items-center space-x-8">
+        <div className="flex items-center space-x-8 ml-auto">
           {!isAuthenticated ? (
             <>
               <div className="hidden md:flex items-center space-x-6">
@@ -131,7 +149,7 @@ export default function Navbar() {
             </>
           ) : (
             <div className="flex items-center space-x-4">
-              <div className="relative w-64" onFocus={() => setShowSuggestions(true)} onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}>
+              <div className="relative w-64 hidden sm:block" onFocus={() => setShowSuggestions(true)} onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}>
                 <AiOutlineSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
@@ -143,6 +161,92 @@ export default function Navbar() {
                 {/* Suggestions dropdown */}
                 {showSuggestions && searchQuery.trim() !== '' && (
                   <SuggestionsList query={searchQuery} sourceBooks={sourceBooks} onSelect={(id) => router.push(`/book/${id}`)} />
+                )}
+              </div>
+
+              {/* Hamburger dropdown for small screens (appears when sidebar is hidden) */}
+              <div className="relative lg:hidden">
+                <button
+                  onClick={() => setMenuOpen((prev) => !prev)}
+                  aria-label="Open menu"
+                  className="p-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+                >
+                  <AiOutlineMenu className="w-6 h-6 text-gray-700" />
+                </button>
+
+                {menuOpen && (
+                  <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow z-50">
+                    <nav className="py-2">
+                      <ul className="space-y-1">
+                        {sidebarItems.map((item) => {
+                          const Icon = item.icon;
+                          const isActive = pathname === item.href;
+                          return (
+                            <li key={item.href}>
+                              {item.disabled ? (
+                                <div
+                                  className="flex items-center gap-3 px-3 py-2 text-gray-700 cursor-not-allowed select-none"
+                                  aria-disabled="true"
+                                >
+                                  <Icon className="w-5 h-5" />
+                                  <span>{item.label}</span>
+                                </div>
+                              ) : (
+                                <Link
+                                  href={item.href}
+                                  onClick={() => setMenuOpen(false)}
+                                  className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors cursor-pointer ${isActive ? 'bg-[#2bd97c] text-[#032b41] font-medium' : 'text-gray-700 hover:bg-gray-100'}`}
+                                >
+                                  <Icon className="w-5 h-5" />
+                                  <span>{item.label}</span>
+                                </Link>
+                              )}
+                            </li>
+                          );
+                        })}
+                      </ul>
+
+                      <div className="mt-2 pt-2 border-t border-gray-200">
+                        <ul className="space-y-1">
+                          {bottomItems.map((item) => {
+                            const Icon = item.icon;
+                            const isActive = pathname === item.href;
+                            return (
+                              <li key={item.href}>
+                                {item.disabled ? (
+                                  <div
+                                    className="flex items-center gap-3 px-3 py-2 text-gray-700 cursor-not-allowed select-none"
+                                    aria-disabled="true"
+                                  >
+                                    <Icon className="w-5 h-5" />
+                                    <span>{item.label}</span>
+                                  </div>
+                                ) : (
+                                  <Link
+                                    href={item.href}
+                                    onClick={() => setMenuOpen(false)}
+                                    className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors cursor-pointer ${isActive ? 'bg-[#2bd97c] text-[#032b41] font-medium' : 'text-gray-700 hover:bg-gray-100'}`}
+                                  >
+                                    <Icon className="w-5 h-5" />
+                                    <span>{item.label}</span>
+                                  </Link>
+                                )}
+                              </li>
+                            );
+                          })}
+                          <li>
+                            <button
+                              onClick={handleLogout}
+                              className="w-full flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
+                            >
+                              <AiOutlineLogout className="w-5 h-5" />
+                              <span>Logout</span>
+                            </button>
+                          </li>
+                        </ul>
+                      </div>
+                    </nav>
+                  </div>
                 )}
               </div>
             </div>

@@ -1,10 +1,10 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
-import { useSelector } from 'react-redux';
+import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { useEffect, useState, useRef } from 'react';
 import Image from 'next/image';
-import type { Book } from '@/data/mockBooks';
+import { Book, addToLibrary, removeFromLibrary, addToFinished } from '@/store/slices/booksSlice';
 import { 
   AiFillPlayCircle, 
   AiFillPauseCircle, 
@@ -20,7 +20,10 @@ import { MdSpeed } from 'react-icons/md';
 const AudioPlayerPage = () => {
   const params = useParams();
   const router = useRouter();
-  const { isAuthenticated, hasHydrated } = useSelector((state: any) => state.auth);
+  const dispatch = useAppDispatch();
+  const { isAuthenticated, hasHydrated } = useAppSelector((state) => state.auth);
+  const library = useAppSelector((state) => state.books.library);
+  const finishedBooks = useAppSelector((state) => state.books.finishedBooks);
   const audioRef = useRef<HTMLAudioElement>(null);
   
   const [book, setBook] = useState<Book | null>(null);
@@ -86,7 +89,15 @@ const AudioPlayerPage = () => {
       setDuration(audio.duration);
       setIsLoading(false);
     };
-    const handleEnded = () => setIsPlaying(false);
+    const handleEnded = () => {
+      setIsPlaying(false);
+      if (book) {
+        const isAlreadyFinished = finishedBooks.some((b) => b.id === book.id);
+        if (!isAlreadyFinished) {
+          dispatch(addToFinished(book));
+        }
+      }
+    };
 
     audio.addEventListener('timeupdate', updateTime);
     audio.addEventListener('loadedmetadata', updateDuration);
@@ -98,6 +109,14 @@ const AudioPlayerPage = () => {
       audio.removeEventListener('ended', handleEnded);
     };
   }, [book]);
+
+  useEffect(() => {
+    if (book) {
+      setIsBookmarked(library.some((b) => b.id === book.id));
+    } else {
+      setIsBookmarked(false);
+    }
+  }, [book, library]);
 
   const togglePlayPause = () => {
     const audio = audioRef.current;
@@ -158,7 +177,19 @@ const AudioPlayerPage = () => {
   };
 
   const handleBookmark = () => {
-    setIsBookmarked(!isBookmarked);
+    if (!isAuthenticated) {
+      router.push('/');
+      return;
+    }
+    if (book) {
+      if (isBookmarked) {
+        dispatch(removeFromLibrary(book.id));
+        setIsBookmarked(false);
+      } else {
+        dispatch(addToLibrary(book));
+        setIsBookmarked(true);
+      }
+    }
   };
 
   if (!hasHydrated) {
@@ -179,7 +210,7 @@ const AudioPlayerPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 text-[#032b41]">
-      <div className="container mx-auto px-6 py-8">
+      <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <button
@@ -246,44 +277,22 @@ const AudioPlayerPage = () => {
             />
           </div>
 
-          {/* Book Summary / Transcript */}
+          {/* Transcript */}
           <div className="bg-white bg-opacity-10 backdrop-blur-sm rounded-2xl p-8">
-            <h3 className="text-2xl font-bold mb-4">{book.subscriptionRequired ? "What you'll learn" : 'Transcript'}</h3>
-            {book.subscriptionRequired ? (
-              <p className="text-lg leading-relaxed opacity-90">
-                {book.summary}
-              </p>
-            ) : (
+            <h3 className="text-2xl font-bold mb-4">Transcript</h3>
+            {(book.summary && book.summary.trim().length > 0) ? (
               <div className="prose prose-lg max-w-none leading-relaxed text-gray-800">
-                {`The Lean Startup is a book by entrepreneur and startup consultant Eric Ries that offers a methodology for building successful startups. The book is based on Ries’ experiences working with startups, and his belief that many of the traditional approaches to building a business are flawed and can lead to wasted resources and failure. The Lean Startup offers a new approach to entrepreneurship that emphasizes rapid iteration, customer feedback, and a focus on delivering value to the customer.
-
-Part One: Vision
-The first section of The Lean Startup introduces the key concepts and principles of the lean startup methodology. Ries argues that traditional approaches to entrepreneurship are based on a flawed assumption that startups can simply follow a linear process to success, starting with a well-defined business plan and executing that plan flawlessly. He argues that in reality, startups are much more complex and uncertain, and that the key to success is to be able to navigate this uncertainty by constantly iterating and learning from customer feedback.
-
-Part Two: Steer
-The second section of The Lean Startup explores the process of steering a startup towards success. Ries argues that startups should focus on delivering value to the customer as quickly and efficiently as possible, and that the best way to do this is by using a process of continuous experimentation and iteration. He also emphasizes the importance of measuring progress and using data to inform decision-making, and offers insights into the types of metrics that are most valuable for startups.
-
-Part Three: Accelerate
-The third section of The Lean Startup focuses on strategies for accelerating the growth of a startup. Ries argues that startups should focus on building a scalable business model that can be rapidly expanded once product-market fit has been established. He also offers advice on how to build a strong team, how to manage resources effectively, and how to create a culture of innovation and experimentation.
-
-Key Themes
-The Lean Startup is a powerful and influential book that has revolutionized the way many entrepreneurs approach building a business. Some of the key themes of the book include:
-
-Rapid Iteration: The Lean Startup emphasizes the importance of rapid iteration and experimentation in building a successful startup. By quickly testing new ideas and incorporating customer feedback, startups can minimize the risk of failure and maximize the chances of success.
-
-Customer Focus: The Lean Startup places a strong emphasis on delivering value to the customer. By focusing on what the customer wants and needs, startups can create products and services that are more likely to succeed in the market.
-
-Data-Driven Decision Making: The Lean Startup encourages startups to use data to inform decision-making. By measuring progress and using data to track key metrics, startups can make more informed decisions and avoid wasting resources on initiatives that are unlikely to succeed.
-
-Continuous Improvement: The Lean Startup advocates for a culture of continuous improvement, in which startups are constantly looking for ways to improve their products and processes. By embracing a mindset of continuous improvement, startups can stay ahead of the competition and build sustainable long-term success.
-
-Conclusion
-The Lean Startup is a must-read for anyone interested in building a successful startup. Ries’ methodology is based on years of experience working with startups, and his insights into the key factors that contribute to startup success are both powerful and actionable. By embracing the principles of the Lean Startup, entrepreneurs can minimize the risk of failure and maximize their chances of building a sustainable, successful business.`.split('\n\n').map((paragraph, index) => (
-                  <p key={index} className="mb-4">
-                    {paragraph}
-                  </p>
-                ))}
+                {book.summary
+                  .split(/\n\n|\r\n\r\n/)
+                  .filter(Boolean)
+                  .map((paragraph, index) => (
+                    <p key={index} className="mb-4">
+                      {paragraph.trim()}
+                    </p>
+                  ))}
               </div>
+            ) : (
+              <p className="text-lg leading-relaxed opacity-90">Transcript is not available for this book.</p>
             )}
           </div>
         </div>

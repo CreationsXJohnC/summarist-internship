@@ -39,9 +39,9 @@ const Footer = () => {
             <ul className="space-y-3">
               {footerLinks.actions.map((link, index) => (
                 <li key={index}>
-                  <span className="text-gray-300 cursor-not-allowed select-none opacity-70" aria-disabled="true" tabIndex={-1}>
+                  <a href={link.href} className="text-[#032b41] hover:text-[#2bd97c] transition-colors">
                     {link.name}
-                  </span>
+                  </a>
                 </li>
               ))}
             </ul>
@@ -53,9 +53,9 @@ const Footer = () => {
             <ul className="space-y-3">
               {footerLinks.usefulLinks.map((link, index) => (
                 <li key={index}>
-                  <span className="text-gray-300 cursor-not-allowed select-none opacity-70" aria-disabled="true" tabIndex={-1}>
+                  <a href={link.href} className="text-[#032b41] hover:text-[#2bd97c] transition-colors">
                     {link.name}
-                  </span>
+                  </a>
                 </li>
               ))}
             </ul>
@@ -67,9 +67,9 @@ const Footer = () => {
             <ul className="space-y-3">
               {footerLinks.company.map((link, index) => (
                 <li key={index}>
-                  <span className="text-gray-300 cursor-not-allowed select-none opacity-70" aria-disabled="true" tabIndex={-1}>
+                  <a href={link.href} className="text-[#032b41] hover:text-[#2bd97c] transition-colors">
                     {link.name}
-                  </span>
+                  </a>
                 </li>
               ))}
             </ul>
@@ -81,9 +81,9 @@ const Footer = () => {
             <ul className="space-y-3">
               {footerLinks.other.map((link, index) => (
                 <li key={index}>
-                  <span className="text-gray-300 cursor-not-allowed select-none opacity-70" aria-disabled="true" tabIndex={-1}>
+                  <a href={link.href} className="text-[#032b41] hover:text-[#2bd97c] transition-colors">
                     {link.name}
-                  </span>
+                  </a>
                 </li>
               ))}
             </ul>
@@ -91,9 +91,9 @@ const Footer = () => {
         </div>
 
         {/* Bottom Section */}
-        <div className="border-t border-gray-600 pt-8">
+        <div className="border-t border-gray-200 pt-8">
           <div className="text-center">
-            <div className="text-gray-300 text-sm">
+            <div className="text-gray-600 text-sm">
               © 2024 Summarist. All rights reserved.
             </div>
           </div>

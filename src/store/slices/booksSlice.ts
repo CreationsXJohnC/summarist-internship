@@ -80,6 +80,16 @@ const booksSlice = createSlice({
         state.finishedBooks.push(action.payload);
       }
     },
+    // Added for hydration/persistence and unmarking as read
+    setLibrary: (state, action: PayloadAction<Book[]>) => {
+      state.library = Array.isArray(action.payload) ? action.payload : [];
+    },
+    setFinishedBooks: (state, action: PayloadAction<Book[]>) => {
+      state.finishedBooks = Array.isArray(action.payload) ? action.payload : [];
+    },
+    removeFromFinished: (state, action: PayloadAction<string>) => {
+      state.finishedBooks = state.finishedBooks.filter(book => book.id !== action.payload);
+    },
     setError: (state, action: PayloadAction<string>) => {
       state.error = action.payload;
       state.isLoading = false;
@@ -100,6 +110,9 @@ export const {
   addToLibrary,
   removeFromLibrary,
   addToFinished,
+  setLibrary,
+  setFinishedBooks,
+  removeFromFinished,
   setError,
   clearError,
 } = booksSlice.actions;

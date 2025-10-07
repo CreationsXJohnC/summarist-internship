@@ -13,6 +13,7 @@ import type { RootState } from '@/store/store';
 
 export default function MainLayout({ children }: MainLayoutProps) {
   const isAuthenticated = useAppSelector((state: RootState) => state.auth.isAuthenticated);
+  const hasHydrated = useAppSelector((state: RootState) => state.auth.hasHydrated);
   const pathname = usePathname();
   const isHomePage = pathname === '/';
 
@@ -21,13 +22,13 @@ export default function MainLayout({ children }: MainLayoutProps) {
       <Navbar />
       
       <div className="flex">
-        {isAuthenticated && <Sidebar />}
+        {hasHydrated && isAuthenticated && <Sidebar />}
         
-        <main className={`flex-1 ${isAuthenticated ? 'lg:ml-[200px]' : ''}`}>
+        <main className={`flex-1 lg:ml-[200px]`}>
           {isHomePage ? (
             children
           ) : (
-            <div className="p-6">
+            <div className="p-2">
               {children}
             </div>
           )}

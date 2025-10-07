@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useAppSelector } from '@/store/hooks';
+import { AiOutlineDown, AiOutlineUp } from 'react-icons/ai';
 
 export default function ChoosePlanPage() {
   const user = useAppSelector((s) => s.auth.user);
@@ -76,7 +77,7 @@ export default function ChoosePlanPage() {
   return (
     <div className="min-h-screen bg-gray-50 text-[#032b41]">
       {/* Hero */}
-      <div className="container mx-auto px-6 py-14">
+      <div className="container mx-auto px-4 py-14">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-4xl font-bold mb-4">Choose Your Plan</h1>
           <p className="text-gray-700 mb-8">
@@ -179,7 +180,7 @@ export default function ChoosePlanPage() {
       </div>
 
       {/* FAQ Accordion */}
-      <div className="container mx-auto px-6 pb-20">
+      <div className="container mx-auto px-4 pb-20">
         <h3 className="text-2xl font-bold mb-6 text-center">Frequently Asked Questions</h3>
         <div className="max-w-3xl mx-auto">
           {faqs.map((item, idx) => (
@@ -190,9 +191,11 @@ export default function ChoosePlanPage() {
                 aria-expanded={openFaq === idx}
               >
                 <span className="font-semibold">{item.q}</span>
-                <span className="material-symbols-outlined">
-                  {openFaq === idx ? 'expand_less' : 'expand_more'}
-                </span>
+                {openFaq === idx ? (
+                  <AiOutlineUp className="w-5 h-5 text-gray-500" aria-hidden="true" />
+                ) : (
+                  <AiOutlineDown className="w-5 h-5 text-gray-500" aria-hidden="true" />
+                )}
               </button>
               {openFaq === idx && (
                 <div className="px-5 pb-4 text-gray-700">{item.a}</div>
