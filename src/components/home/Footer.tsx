@@ -39,9 +39,13 @@ const Footer = () => {
             <ul className="space-y-3">
               {footerLinks.actions.map((link, index) => (
                 <li key={index}>
-                  <a href={link.href} className="text-[#032b41] hover:text-[#2bd97c] transition-colors">
+                  <span
+                    className="text-[#032b41] hover:text-[#2bd97c] transition-colors cursor-not-allowed select-none"
+                    aria-disabled="true"
+                    tabIndex={-1}
+                  >
                     {link.name}
-                  </a>
+                  </span>
                 </li>
               ))}
             </ul>
@@ -53,9 +57,13 @@ const Footer = () => {
             <ul className="space-y-3">
               {footerLinks.usefulLinks.map((link, index) => (
                 <li key={index}>
-                  <a href={link.href} className="text-[#032b41] hover:text-[#2bd97c] transition-colors">
+                  <span
+                    className="text-[#032b41] hover:text-[#2bd97c] transition-colors cursor-not-allowed select-none"
+                    aria-disabled="true"
+                    tabIndex={-1}
+                  >
                     {link.name}
-                  </a>
+                  </span>
                 </li>
               ))}
             </ul>
@@ -67,9 +75,13 @@ const Footer = () => {
             <ul className="space-y-3">
               {footerLinks.company.map((link, index) => (
                 <li key={index}>
-                  <a href={link.href} className="text-[#032b41] hover:text-[#2bd97c] transition-colors">
+                  <span
+                    className="text-[#032b41] hover:text-[#2bd97c] transition-colors cursor-not-allowed select-none"
+                    aria-disabled="true"
+                    tabIndex={-1}
+                  >
                     {link.name}
-                  </a>
+                  </span>
                 </li>
               ))}
             </ul>
@@ -81,9 +93,13 @@ const Footer = () => {
             <ul className="space-y-3">
               {footerLinks.other.map((link, index) => (
                 <li key={index}>
-                  <a href={link.href} className="text-[#032b41] hover:text-[#2bd97c] transition-colors">
+                  <span
+                    className="text-[#032b41] hover:text-[#2bd97c] transition-colors cursor-not-allowed select-none"
+                    aria-disabled="true"
+                    tabIndex={-1}
+                  >
                     {link.name}
-                  </a>
+                  </span>
                 </li>
               ))}
             </ul>
