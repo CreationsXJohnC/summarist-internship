@@ -25,7 +25,7 @@ const TranscriptPage = () => {
           setLoading(false);
           return;
         }
-      } catch (err) {
+      } catch {
         // ignore
       }
 

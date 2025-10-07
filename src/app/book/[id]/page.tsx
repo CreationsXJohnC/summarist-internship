@@ -31,7 +31,7 @@ const BookDetailPage = () => {
         if (!res.ok) throw new Error('Failed to fetch book');
         const data = await res.json();
         setBook(data as Book);
-      } catch (err) {
+      } catch {
         router.push('/for-you');
       } finally {
         setIsLoading(false);
@@ -161,7 +161,7 @@ const BookDetailPage = () => {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-[#032b41] mb-4">Book Not Found</h2>
-          <p className="text-gray-600">The book you're looking for doesn't exist.</p>
+          <p className="text-gray-600">The book you&apos;re looking for doesn&apos;t exist.</p>
         </div>
       </div>
     );
@@ -281,7 +281,7 @@ const BookDetailPage = () => {
           {activeTab === 'summary' && (
             <div className="space-y-8">
               <div>
-                <h3 className="text-2xl font-bold text-[#032b41] mb-4">What's it about?</h3>
+                <h3 className="text-2xl font-bold text-[#032b41] mb-4">What&apos;s it about?</h3>
                 <p className="text-gray-700 leading-relaxed">
                   {(book.summary || '')
                     .trim()

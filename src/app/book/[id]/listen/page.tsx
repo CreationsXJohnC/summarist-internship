@@ -12,7 +12,6 @@ import {
   AiFillStepForward,
 } from 'react-icons/ai';
 import { BsBookmark, BsBookmarkFill } from 'react-icons/bs';
-import { MdSpeed } from 'react-icons/md';
 
 const AudioPlayerPage = () => {
   const params = useParams();
@@ -27,10 +26,7 @@ const AudioPlayerPage = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [volume, setVolume] = useState(1);
-  const [playbackRate, setPlaybackRate] = useState(1);
   const [isBookmarked, setIsBookmarked] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (!hasHydrated) return;
@@ -49,7 +45,7 @@ const AudioPlayerPage = () => {
           setBook(data as Book);
           return;
         }
-      } catch (err) {
+      } catch {
         // ignore and try fallback
       }
 
@@ -84,7 +80,6 @@ const AudioPlayerPage = () => {
     const updateTime = () => setCurrentTime(audio.currentTime);
     const updateDuration = () => {
       setDuration(audio.duration);
-      setIsLoading(false);
     };
     const handleEnded = () => {
       setIsPlaying(false);
@@ -105,7 +100,7 @@ const AudioPlayerPage = () => {
       audio.removeEventListener('loadedmetadata', updateDuration);
       audio.removeEventListener('ended', handleEnded);
     };
-  }, [book]);
+  }, [book, finishedBooks, dispatch]);
 
   useEffect(() => {
     if (book) {
@@ -136,22 +131,7 @@ const AudioPlayerPage = () => {
     setCurrentTime(newTime);
   };
 
-  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const audio = audioRef.current;
-    if (!audio) return;
 
-    const newVolume = parseFloat(e.target.value);
-    audio.volume = newVolume;
-    setVolume(newVolume);
-  };
-
-  const handleSpeedChange = (speed: number) => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    audio.playbackRate = speed;
-    setPlaybackRate(speed);
-  };
 
   const skipTime = (seconds: number) => {
     const audio = audioRef.current;
@@ -199,7 +179,7 @@ const AudioPlayerPage = () => {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-[#032b41] mb-4">Book Not Found</h2>
-          <p className="text-gray-600">The book you're looking for doesn't exist.</p>
+          <p className="text-gray-600">The book you&apos;re looking for doesn&apos;t exist.</p>
         </div>
       </div>
     );
