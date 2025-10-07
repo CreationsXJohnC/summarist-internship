@@ -80,9 +80,10 @@ export default function AuthModal() {
       }));
       router.push('/for-you');
       handleClose();
-    } catch (err: any) {
-      const code = err?.code;
-      const message = (err?.message || '').toLowerCase();
+    } catch (err: unknown) {
+      const code = typeof err === 'object' && err && 'code' in err ? (err as { code?: string }).code : undefined;
+      const rawMessage = typeof err === 'object' && err && 'message' in err ? (err as { message?: string }).message : undefined;
+      const message = (rawMessage || '').toLowerCase();
       if (code === 'auth/invalid-api-key' || message.includes('api-key-not-valid')) {
         dispatch(setError('Google sign-in is unavailable: Firebase API key is invalid or missing.'));
       } else if (code === 'auth/configuration-not-found') {
@@ -96,7 +97,7 @@ export default function AuthModal() {
       } else if (code === 'auth/network-request-failed') {
         dispatch(setError('Network error during sign-in. Check your connection and try again.'));
       } else {
-        dispatch(setError(err?.message || 'Google sign-in failed. Please try again.'));
+        dispatch(setError(rawMessage || 'Google sign-in failed. Please try again.'));
       }
     } finally {
       dispatch(setLoading(false));
@@ -183,8 +184,9 @@ export default function AuthModal() {
       } else if (modalType === 'forgot-password') {
         await sendPasswordResetEmail(auth, email);
       }
-    } catch (err: any) {
-      const code = err?.code;
+    } catch (err: unknown) {
+      const code = typeof err === 'object' && err && 'code' in err ? (err as { code?: string }).code : undefined;
+      const rawMessage = typeof err === 'object' && err && 'message' in err ? (err as { message?: string }).message : undefined;
       if (code === 'auth/user-not-found') {
         dispatch(setError('User not found'));
       } else if (code === 'auth/invalid-email') {
@@ -194,7 +196,7 @@ export default function AuthModal() {
       } else if (code === 'auth/weak-password') {
         dispatch(setError('Short password'));
       } else {
-        dispatch(setError(err?.message || 'Authentication failed'));
+        dispatch(setError(rawMessage || 'Authentication failed'));
       }
     } finally {
       dispatch(setLoading(false));

@@ -46,8 +46,9 @@ export default function ChoosePlanPage() {
       } else {
         throw new Error('No checkout URL returned');
       }
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Unable to start checkout';
+      setError(message);
     } finally {
       setLoading(false);
     }

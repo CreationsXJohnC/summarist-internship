@@ -45,7 +45,7 @@ const ReadingPage = () => {
           setBook(data as Book);
           return;
         }
-      } catch (err) {
+      } catch {
         // ignore and try fallback
       }
 
@@ -135,7 +135,7 @@ const ReadingPage = () => {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-[#032b41] mb-4">Book Not Found</h2>
-          <p className="text-gray-600">The book you're looking for doesn't exist.</p>
+          <p className="text-gray-600">The book you&apos;re looking for doesn&apos;t exist.</p>
         </div>
       </div>
     );

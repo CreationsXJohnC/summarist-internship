@@ -75,7 +75,7 @@ const SuggestionsList = ({ query, sourceBooks, onSelect }: { query: string; sour
 };
 
 export default function Navbar() {
-  const { isAuthenticated, user } = useAppSelector((state) => state.auth);
+  const { isAuthenticated } = useAppSelector((state) => state.auth);
   const searchQuery = useAppSelector((state) => state.books.searchQuery);
   const recommendedBooks = useAppSelector((state) => state.books.recommendedBooks);
   const suggestedBooks = useAppSelector((state) => state.books.suggestedBooks);
