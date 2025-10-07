@@ -1,11 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
-
 export async function POST(req: NextRequest) {
   try {
     const { customerId } = await req.json();
+
+    const secretKey = process.env.STRIPE_SECRET_KEY;
+    if (!secretKey) {
+      return NextResponse.json(
+        { error: 'Stripe secret key is not configured.' },
+        { status: 500 }
+      );
+    }
+
+    const stripe = new Stripe(secretKey);
 
     const origin = req.nextUrl.origin;
     const session = await stripe.billingPortal.sessions.create({
